@@ -110187,7 +110187,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"写真","over":"なし","opacity":0.3,"center":[34.572691,133.686275],"zoom":12,"file":"徒歩軌跡 まとめ_20260922","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.572086,133.684559],"zoom":12,"file":"徒歩軌跡 まとめ_20260922","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -111082,7 +111082,7 @@ const HINTS = {
   '#kmlBtn':  '押すと、経路をKMLで保存します。保存先は「ダウンロード」です。',
   '#dupOff':  '押すと、重なっている記録の二つ目以降を一覧から外します',
   '#todoFix': '押すと、入力途中の記録を一件ずつ順に開きます。直すと次が出ます',
-  '#topBtn':  '押すと、いちばん上（アプリの先頭）へ戻ります',
+  '#topBtn':  '押すと、いちばん上へ戻ります（縦向きのスマホでは、地図の上の端へ）',
   '#todoBar': '押すと、入力途中の記録だけを一覧に出します。もう一度押すと元に戻ります',
   // 地図の切り替え
   '淡色':     '押すと、下の地図を淡い色の地図に切り替えます',
@@ -112372,13 +112372,95 @@ let backCtl=null;
    地図だけが大きくなり、釦は読みやすい大きさのままです。 */
 
 /* 「TOPへ」。画面の中央下に固定。押すとアプリの先頭へ戻ります。 */
+/* 縦向きのスマホか（v221）。
+   向きは、端末そのものの向き（screen.orientation）で見分けます。
+   見えている範囲が縦長か横長かで見分けると、キーボードが出て高さが縮んだとき、
+   横向きと取り違えることがあります。
+   screen.orientation の無い古い iPhone では window.orientation（0・180が縦）を使います。 */
+function portraitPhone(){
+  if(!(typeof isPhone==='function' && isPhone())) return false;
+  try{
+    const o=screen.orientation && screen.orientation.type;
+    if(o) return o.indexOf('portrait')===0;
+  }catch(e){}
+  if(typeof window.orientation==='number') return (window.orientation%180)===0;
+  return window.innerHeight > window.innerWidth;
+}
+/* 縦向きのスマホでは、地図の高さを、見えている高さに合わせます（v221・本人の決め）。
+   地図の上の端を画面の上に合わせたとき、
+     地図 ＋「淡色〜店舗」の並び ＋ 画面下の釦（位置・使い方・TOP）
+   が一画面に収まる高さにします。いつも同じ大きさにしておきます
+   （「TOP」を押したときだけ変えると、押すたびに見ていた所がずれるため）。
+   横向きとパソコンは、これまでどおり（style の高さ）です。
+
+   見えている高さは、LINE の中では上下の帯が出たり引っ込んだりして変わります。
+   帯が出ている、いちばん低いときに合わせておけば、どちらでも収まります。
+   そこで、同じ向きのあいだに見えた「いちばん低い高さ」を覚えて使います。
+     ・向きが変わったら（幅が変わったら）、覚えを捨てて測り直す
+     ・文字を打っているとき（キーボードが出ているとき）は測らない
+     ・指で画面を広げているときは測らない（見えている高さが小さく出るため） */
+(function(){
+  let lowH=Infinity, lastW=0, t=null;
+  function visH(){ const v=window.visualViewport; return v ? v.height : window.innerHeight; }
+  function fitMap(){
+    const m=document.getElementById('map');
+    const grp=document.querySelector('.deck .grp');          // 「下の地図」（淡色〜店舗）の並び
+    if(!m||!grp) return;
+    if(!portraitPhone()){
+      if(m.style.height){ m.style.height=''; m.style.minHeight='';
+        try{ map.invalidateSize(); }catch(e){} }
+      return;
+    }
+    const mr=m.getBoundingClientRect(), gr=grp.getBoundingClientRect();
+    const below=Math.max(0, gr.bottom-mr.bottom);            // 地図の下端から並びの下端まで
+    const tb=(typeof topBtnBox==='function')?topBtnBox():null;
+    const foot=(tb&&tb.offsetHeight)?(tb.offsetHeight+10+8):64;   // 画面下の釦と、その下の余白
+    const h=Math.max(220, Math.floor(lowH-below-foot));
+    if(m.style.height!==h+'px'){
+      m.style.minHeight='0'; m.style.height=h+'px';
+      try{ map.invalidateSize(); }catch(e){}
+    }
+  }
+  function measure(){
+    const v=window.visualViewport;
+    if(v && Math.abs((v.scale||1)-1)>0.01) return;          // 広げているときは測らない
+    const w=window.innerWidth;
+    if(w!==lastW){ lastW=w; lowH=Infinity; }               // 向きが変わった
+    /* 文字を打っているあいだ（キーボードが出ているあいだ）は、地図に一切触れません。
+       見えている高さがキーボードのぶん縮み、それに合わせると地図が小さくなりすぎます。 */
+    const ae=document.activeElement;
+    const typing=ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)
+                 && !/^(range|checkbox|radio|button)$/.test(ae.type||'');
+    if(typing && lowH!==Infinity) return;
+    lowH=Math.min(lowH, visH());
+    fitMap();
+  }
+  function soon(){ clearTimeout(t); t=setTimeout(measure,120); }
+  window.addEventListener('resize', soon);
+  window.addEventListener('orientationchange', soon);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', soon);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(measure,0));
+  else setTimeout(measure,0);
+  window.addEventListener('load', ()=>setTimeout(measure,0));
+  window.__fitMap=measure;                                    // 検証から呼べるように
+})();
 function topBtnBox(){
   let b=document.getElementById('topBtn');
   if(!b){
     b=document.createElement('button');
     b.id='topBtn'; b.type='button'; b.textContent='TOP';
     /* 瞬時に切り替えます。なめらかに送ると、長い一覧では数秒かかります。 */
-    b.addEventListener('click',()=>{ window.scrollTo(0,0);
+    b.addEventListener('click',()=>{
+      /* 縦向きのスマホでは、地図の上の端へ戻ります（v221・本人の決め）。
+         地図・「淡色〜店舗」の並び・画面下の釦が、一画面に収まります。
+         見出しの帯（題名）は画面の外になります。 */
+      const m=document.getElementById('map');
+      if(m && typeof portraitPhone==='function' && portraitPhone()){
+        const y=m.getBoundingClientRect().top+(window.pageYOffset||document.documentElement.scrollTop||0);
+        window.scrollTo(0, Math.max(0, Math.round(y)));
+        return;
+      }
+      window.scrollTo(0,0);
       if(document.documentElement) document.documentElement.scrollTop=0;
       if(document.body) document.body.scrollTop=0; });
     b.addEventListener('mousedown',e=>e.preventDefault());   // 焦点で画面が跳ぶのを防ぐ
