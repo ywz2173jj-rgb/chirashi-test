@@ -1,7 +1,5 @@
-
-<!DOCTYPE html>
-<html lang="ja">
-<head>
+<!doctype html>
+<html lang="ja"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -288,6 +286,19 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
 .row.none{background:#FAFAF8}
 .row .nm.plain{cursor:default;color:var(--muted)}
 .km.nomap{color:var(--alert);font-weight:600}
+/* 真ん中の十字と住所の帯（v220）。地図操作オンのときだけ出します。
+   どちらも押しても何も起きません（下の地図の操作を邪魔しない）。 */
+.xhair{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+       pointer-events:none;z-index:640;display:none}
+.xhair::before,.xhair::after{content:"";position:absolute;background:#1a2b4a;box-shadow:0 0 0 1.5px #fff}
+.xhair::before{left:12px;top:0;width:2px;height:26px}
+.xhair::after{top:12px;left:0;width:26px;height:2px}
+.addrbar{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);  /* 左下の縮尺に重ねない */
+         max-width:calc(100% - 24px);padding:4px 12px;border:2px solid #1E5FD0;border-radius:6px;
+         background:rgba(255,255,255,.93);color:#1a2b4a;font-size:14px;line-height:1.4;
+         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+         pointer-events:none;z-index:750;display:none}
+.maplive .xhair,.maplive .addrbar{display:block}
 .more2{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:6px}
 .more2i{display:inline-flex;gap:5px;align-items:center;font-size:14px;color:#41504a;
         border:1px dashed var(--line);border-radius:4px;padding:1px 6px}
@@ -499,7 +510,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-21に保存・187本・合計 757.38 km・住所の目安 154件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-22に保存・187本・合計 757.38 km・住所の目安 154件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -516,7 +527,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <div class="bar">
   <button class="ghost" id="fitBtn">チェックされた経路を表示</button>
   <button class="ghost" id="kmlBtn">経路をKMLで保存</button>
-  <button class="ghost" id="selfBtn" hidden>この見え方で保存し直す</button>
+  <button class="ghost" id="selfBtn" hidden="">この見え方で保存し直す</button>
 </div>
 
 <div class="tally">
@@ -535,18 +546,17 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
   </div>
   <div class="bar viewsw">
     <span>表示</span>
-    <button class="chip"    id="swWho"  type="button" aria-pressed="false">氏名で見る</button>
-    <button class="chip on" id="swVen"  type="button" aria-pressed="true">行事会場で見る</button>
+    <button class="chip" id="swWho" type="button" aria-pressed="false">氏名で見る</button>
+    <button class="chip on" id="swVen" type="button" aria-pressed="true">行事会場で見る</button>
     <button class="chip" id="swAll" type="button" aria-pressed="false">表を全部ひらく</button>
     <span class="pnote" id="swNote"></span>
 
   </div>
-  <div class="tscroll" hidden><table class="ppl" id="tPpl"></table></div>
+  <div class="tscroll" hidden=""><table class="ppl" id="tPpl"></table></div>
   <div class="tscroll"><table class="ppl" id="tVen"></table></div>
   <div class="bar" style="margin-top:7px">
     <span>同じ人にまとめる：</span>
-    <input type="text" id="tAlias" style="width:280px" value=""
-           placeholder="山田はなこ＝山田花子（例）">
+    <input type="text" id="tAlias" style="width:280px" value="" placeholder="山田はなこ＝山田花子（例）">
     <span>「＝」でつなぎ、複数は「、」で区切ります。</span>
   </div>
   <div class="bar" id="tKen" style="margin-top:7px"></div>
@@ -564,7 +574,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
   <div class="popfoot" id="popInfo"></div>
 </dialog>
 
-<p class="note">「チェックされた経路を表示」を押すと、チェックの入っている経路が地図に収まるまで拡大します。一覧の名前を押すと、その場に小さな窓が開き、その経路だけを拡大して映します。窓は閉じるまで後ろの操作を受け付けません。窓の地図は一つを使い回し、閉じるときに中身を手放します。経路の中身は緯度・経度・標高と線の色だけです。線の色は、経路がピンク、住所の目安が青の細かな点線です。時刻、経過時間、滞留地点、出発・帰着のピンは含みません。地図の出典は国土地理院です（「店舗名」を選んだときはOpenStreetMap、&copy; OpenStreetMap contributors）。地図の表示にはインターネット接続が必要です。</p>
+<p class="note">「チェックされた経路を表示」を押すと、チェックの入っている経路が地図に収まるまで拡大します。一覧の名前を押すと、その場に小さな窓が開き、その経路だけを拡大して映します。窓は閉じるまで後ろの操作を受け付けません。窓の地図は一つを使い回し、閉じるときに中身を手放します。経路の中身は緯度・経度・標高と線の色だけです。線の色は、経路がピンク、住所の目安が青の細かな点線です。時刻、経過時間、滞留地点、出発・帰着のピンは含みません。地図の出典は国土地理院です（「店舗名」を選んだときはOpenStreetMap、© OpenStreetMap contributors）。地図の表示にはインターネット接続が必要です。</p>
 
 </div>
 
@@ -110177,7 +110187,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"写真","over":"なし","opacity":0.3,"center":[34.573723,133.641644],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"写真","over":"なし","opacity":0.3,"center":[34.572691,133.686275],"zoom":12,"file":"徒歩軌跡 まとめ_20260922","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -110801,6 +110811,7 @@ function setMapLive(on,quiet){
   if(mapLive) refreshMapPaint();
   const el=map.getContainer();
   if(el) el.classList.toggle('maplive',mapLive);
+  if(typeof window.addrOnLive==='function') window.addrOnLive(mapLive);   // 真ん中の住所（v220）
   const b=document.getElementById('mapMode');
   if(b){ b.textContent = mapLive?'地図操作オフ':'地図操作オン';
          b.setAttribute('aria-pressed', mapLive?'true':'false'); }
@@ -110854,6 +110865,73 @@ function setMapLive(on,quiet){
   }
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'&&mapLive) setMapLive(false); });
   setMapLive(false,true);
+})();
+
+/* ---------- 真ん中の住所（v220・本人の決め） ----------
+   地図操作オンのあいだ、地図の真ん中に小さな十字を出し、
+   地図が止まるたびに、十字の場所の住所を地図の下の帯に出します。
+   国土地理院の地図のサイトと同じやり方です。長押しは要りません。
+     ・住所を引くのは、地図が止まって0.5秒たってから一回だけ
+     ・同じ所（約10m四方）は覚えておき、二度は引きません
+     ・国土地理院が返すのは「町名・丁目」まで。番地は出ません
+     ・国土地理院は市町村を番号で返します。岡山県の27市町村は名前に直します。
+       県の外は町名だけになります
+     ・地図操作オフにすると、十字も帯も消えます（見た目の仕掛けで消える） */
+(function(){
+  const el=(typeof map!=='undefined'&&map&&map.getContainer)?map.getContainer():null;
+  if(!el) return;
+  const xh=document.createElement('div'); xh.className='xhair'; el.appendChild(xh);
+  const bar=document.createElement('div'); bar.className='addrbar'; el.appendChild(bar);
+  const MUNI={
+    '33101':'岡山市北区','33102':'岡山市中区','33103':'岡山市東区','33104':'岡山市南区',
+    '33202':'倉敷市','33203':'津山市','33204':'玉野市','33205':'笠岡市','33207':'井原市',
+    '33208':'総社市','33209':'高梁市','33210':'新見市','33211':'備前市','33212':'瀬戸内市',
+    '33213':'赤磐市','33214':'真庭市','33215':'美作市','33216':'浅口市',
+    '33346':'和気町','33423':'早島町','33445':'里庄町','33461':'矢掛町','33586':'新庄村',
+    '33606':'鏡野町','33622':'勝央町','33623':'奈義町','33643':'西粟倉村','33663':'久米南町',
+    '33666':'美咲町','33681':'吉備中央町'};
+  const cache=new Map();
+  function lookup(lat,lon){
+    const k=lat.toFixed(4)+','+lon.toFixed(4);          // 約10m四方ごとに一つ
+    if(cache.has(k)) return cache.get(k);
+    const pr=(async()=>{
+      try{
+        const u='https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress'
+               +`?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;
+        const r=await fetch(u);
+        if(!r.ok) return null;                            // 引けなかった（通信）
+        const j=await r.json(), g=j&&j.results;
+        if(!g) return '';                                 // 住所の無い所（海の上など）
+        return (MUNI[String(g.muniCd||'')]||'')+String(g.lv01Nm||'');
+      }catch(e){ return null; }
+    })();
+    cache.set(k,pr);
+    pr.then(v=>{ if(v===null) cache.delete(k); });      // 通信で失敗したものは覚えない
+    return pr;
+  }
+  let t=null, seq=0;
+  function update(){
+    const my=++seq;
+    let c; try{ c=map.getCenter(); }catch(e){ return; }
+    bar.textContent='住所を調べています…';
+    lookup(c.lat,c.lng).then(v=>{
+      if(my!==seq) return;                                // もっと新しい問い合わせがある
+      bar.textContent = (v===null) ? '住所を引けませんでした（通信を確かめてください）'
+                      : (v==='')   ? 'この場所の住所はありません（海の上など）'
+                      : v;
+    });
+  }
+  function soon(){
+    clearTimeout(t);
+    if(typeof mapLive!=='undefined' && !mapLive) return;
+    t=setTimeout(update, 500);
+  }
+  try{ map.on('moveend', soon); }catch(e){}
+  window.addrOnLive=function(on){
+    clearTimeout(t);
+    if(on) update(); else { seq++; bar.textContent=''; }
+  };
+  window.__addrLookup=lookup;                              // 検証から呼べるように
 })();
 
 /* ファイルが出る釦は、二度押しを受け付けません。
@@ -114071,7 +114149,4 @@ document.getElementById('fitBtn').title='チェックの入っている経路が
     }catch(e){}
   }, 300);
 })();
-</script>
-</body>
-</html>
-
+</script></body></html>
