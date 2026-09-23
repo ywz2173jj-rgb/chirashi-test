@@ -321,6 +321,15 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
    幅320pxの iPhone では、見出しの52pxのせいで「店舗」が画面の外にはみ出していました。
    見出しを外すと、淡色〜店舗の五つが一段に収まります。パソコンでは残します。 */
 html.isphone .deck .grp:first-child>.lb{display:none}
+/* 位置の様子を、地図の中に一行で出します（v233）。
+   これまでの知らせ（flash）は集計の欄（#tNote）に出していましたが、
+   スマホの縦画面ではそこが画面の外で、何も見えていませんでした。
+   左上の拡大縮小の釦と、右上の地図操作の釦を避けた高さに置きます。 */
+.geostate{position:absolute;left:52px;right:8px;top:60px;z-index:760;
+          padding:4px 10px;border-radius:8px;background:rgba(26,43,74,.9);color:#fff;
+          font-size:13px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+          pointer-events:none;display:none}
+.geostate.on{display:block}
 /* 報告作成と、最初に選ぶ画面（v225） */
 .rpt{position:fixed;inset:0;z-index:3000;background:#f6f7f9;overflow:auto;-webkit-overflow-scrolling:touch}
 .rpt[hidden]{display:none}
@@ -572,7 +581,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-23に保存・197本・合計 813.59 km・住所の目安 156件。（v232）　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-23に保存・197本・合計 813.59 km・住所の目安 156件。（v234）　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -118009,7 +118018,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.545025,133.70018],"zoom":11,"file":"徒歩軌跡 まとめ_20260923","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.57443,133.743749],"zoom":11,"file":"徒歩軌跡 まとめ_20260923","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -120674,7 +120683,7 @@ let geoOn=false, geoWatch=null, geoDot=null, geoRing=null;
        （止めないと、次の位置が届いたとき見たかった所から引き戻されます）
      ・「位置を消す」を押したとき
    もう一度ついていかせるには、「位置を消す」→「位置」と押し直します。 */
-let geoFollow=false, geoPause=false, geoPos=null;
+let geoFollow=false, geoPause=false, geoPos=null, geoRecenter=false;
 function geoStopFollow(){ geoFollow=false; geoPause=false; }
 /* 表で絞ったとき・「チェックされた経路を表示」のときは、ついていくのをやめます（v215）。
    黙ってやめると、「位置を押しても地図が自分の所へ行かない」ように見えます。
@@ -120683,8 +120692,10 @@ function geoTellStop(){
   const was=geoFollow;
   geoStopFollow();
   if(typeof geoBtnText==='function') geoBtnText();
-  if(was && geoOn && typeof flash==='function')
-    flash('地図を絞ったので、ついていくのをやめました。「位置に戻す」で、また自分の所に合わせられます。');
+  if(was && geoOn){
+    if(typeof geoState==='function') geoState('位置：地図を絞ったので止めました（「位置に戻す」で戻せます）');
+    if(typeof geoSay==='function') geoSay('地図を絞ったので、ついていくのをやめました。「位置に戻す」で、また自分の所に合わせられます。');
+  }
 }
 /* 指で地図を動かしているあいだは、ついていくのを「いったん止める」だけにします（v228・本人の決め）。
    離したら、ずらした分をそのまま保ったまま続けます（自分が歩いた分だけ地図が動き、
@@ -120714,11 +120725,12 @@ function geoAfterDrag(){
   clearTimeout(geoPauseT); geoPauseT=null;
   if(geoPos && !geoInView()){
     geoFollow=false; geoBtnText();
-    if(typeof flash==='function') flash('自分の位置が画面から外れました。「位置に戻す」で、また合わせられます。');
+    geoState('位置：画面から外れたので止めました（「位置に戻す」で戻せます）');
+    geoSay('自分の位置が画面から外れました。「位置に戻す」で、また合わせられます。');
   }else if(typeof flash==='function'){
-    /* 続くときも短く知らせます（v230）。
-       知らせが出なければ、そもそも指を離した合図が届いていない、と分かります。 */
+    /* 続くときも短く知らせます（v230）。地図の中の一行にも出します（v233）。 */
     flash('ついていくのを続けます。');
+    if(geoOn && geoPos) geoStateNow(0);
   }
 }
 try{
@@ -120861,7 +120873,7 @@ function geoDraw(pos){
     try{ geoDot.bringToFront(); }catch(e){}         // 経路の線より上に（v229）
     /* 最初の一回だけ、地図を移したことを知らせます（v232）。
        これが出なければ、位置そのものがまだ届いていない、と分かります。 */
-    if(typeof flash==='function') flash('現在地に地図を合わせました。（誤差 約'+Math.round(acc)+'m）');
+    geoSay('現在地に地図を合わせました。（誤差 約'+Math.round(acc)+'m）');
     geoRing=L.circle([la,lo],{radius:acc, color:'#1E5FD0', weight:1,
       opacity:.7, fillColor:'#1E5FD0', fillOpacity:.10}).addTo(map);
   }else{
@@ -120877,16 +120889,22 @@ function geoDraw(pos){
      一回目は自分の位置を真ん中に。二回目からは「歩いた分だけ」地図を動かします。
      指でずらした分はそのまま残り、点は画面の同じ所に留まります。
      指で動かしているあいだ（geoPause）は動かしません。 */
-  if(geoFollow && !geoPause && map.panTo){
+  /* 押したあとの一回目は、何より先に真ん中へ移します（v234・本人の決め）。
+     ついていくのが止まっていても、表で絞っていても、指で動かしている途中でも、
+     ここだけは必ず動かします。滑らかな動き（animate）は使いません。
+     途中で邪魔が入らず、確実にその場で真ん中に来るようにするためです。
+     真ん中に来ますので、地図操作オンのときは十字と重なります。 */
+  if(geoRecenter || !geoPos){
+    try{ map.setView([la,lo], map.getZoom(), {animate:false}); }catch(e){}
+    geoRecenter=false;
+  }else if(geoFollow && !geoPause && map.panTo){
     try{
-      if(!geoPos) map.panTo([la,lo],{animate:true, duration:0.4});
-      else{
-        const c=map.getCenter();
-        map.panTo([c.lat+(la-geoPos[0]), c.lng+(lo-geoPos[1])],{animate:true, duration:0.4});
-      }
+      const c=map.getCenter();
+      map.panTo([c.lat+(la-geoPos[0]), c.lng+(lo-geoPos[1])],{animate:true, duration:0.4});
     }catch(e){}
   }
   geoPos=[la,lo];                             // 次に動かす量を測るため、いつでも控えます
+  geoT0=Date.now(); geoStateNow(acc);         // 地図の中の様子を書き換えます（v233）
   if(geoMoved(la,lo)>=50){
     geoLast=[la,lo];
     geoWhere(la,lo).then(a=>{ if(geoOn){ geoAddr=a||''; geoTell(acc); } });
@@ -120906,6 +120924,8 @@ function geoFail(err){
   {
     const c0=err&&err.code, fileProto=(location.protocol==='file:');
     if(geoOn && geoPos && (c0===2||c0===3) && !fileProto){
+      geoState(c0===3 ? '位置：時間がかかっています。そのまま待ちます。'
+                      : '位置：取れなくなりました。取れたら続けます。');
       geoSay(c0===3 ? '位置を取るのに時間がかかっています。そのまま待ちます。'
                     : '位置が取れなくなりました。取れたら続けます。');
       return;
@@ -120913,6 +120933,12 @@ function geoFail(err){
   }
   geoOn=false; geoClear();
   geoBtnText();
+  clearInterval(geoTick); geoTick=null;
+  {
+    const c1=err&&err.code;
+    geoState('位置：取れません'+(c1?`（code=${c1}${c1===1?' 許可されていない':c1===2?' 位置が分からない':' 時間切れ'}）`
+                                  :'（この画面では位置を使えないようです）'));
+  }
   const c=err && err.code;
   geoSay(c===1 ? '位置の使用が許可されていません。ブラウザの設定からお試しください。'
        : c===2 ? (location.protocol==='file:'
@@ -120926,6 +120952,40 @@ function geoFail(err){
      出ていてついていく … 「位置を消す」
      出ているが止まった … 「位置に戻す」
    幅が変わるので、並べ直しも呼びます（v224）。 */
+/* 位置の様子を地図の中に出します（v233）。
+   「押したのに何も起きない」ときに、見張りを始めたのか・届かないのか・断られたのかが、
+   その場で分かるようにするためです。知らせは地図の外にも出しますが、
+   スマホの縦画面では地図の外は見えません。 */
+let geoT0=0, geoTick=null;
+function geoStateBox(){
+  let e=document.getElementById('geoState');
+  if(!e){
+    const m=(map&&map.getContainer)?map.getContainer():null; if(!m) return null;
+    e=document.createElement('div'); e.id='geoState'; e.className='geostate';
+    m.appendChild(e);
+  }
+  return e;
+}
+function geoState(text){
+  const e=geoStateBox(); if(!e) return;
+  e.textContent=text||'';
+  e.classList.toggle('on', !!text);
+}
+function geoWaitStart(){
+  geoT0=Date.now();
+  clearInterval(geoTick);
+  geoTick=setInterval(()=>{
+    if(!geoOn || geoDot){ clearInterval(geoTick); geoTick=null; return; }
+    const s=Math.round((Date.now()-geoT0)/1000);
+    geoState(s<10 ? `位置：調べています…（${s}秒）`
+                  : `位置：まだ届きません（${s}秒）。屋内や地下では取れないことがあります。`);
+  }, 1000);
+}
+function geoStateNow(acc){
+  const ago=Math.max(0,Math.round((Date.now()-geoT0)/1000));
+  geoState(`位置：届きました（誤差 約${acc}m・${ago}秒前）・`
+           + (geoFollow ? (geoPause?'指で動かしています':'追随中') : '止まっています（「位置に戻す」で戻せます）'));
+}
 function geoBtnText(){
   const b=document.getElementById('geoBtn'); if(!b) return;
   b.textContent = !geoOn ? '位置' : (geoFollow ? '位置を消す' : '位置に戻す');
@@ -120941,27 +121001,43 @@ function geoToggle(){
     /* 最後に届いた位置へ、その場で合わせます（次の位置を待たせません）。 */
     const back = geoPos ? geoPos.slice()
                : ((geoDot && geoDot.getLatLng) ? geoDot.getLatLng() : null);
-    geoFollow=true; geoPause=false; geoPos=null;
+    /* 前の位置の控え（geoPos）は残します。捨てると、一時的に取れなくなったときの
+       「見張りを続ける」決まりが効かなくなるためです（v233）。
+       代わりに、次の一回だけ真ん中に合わせる印を立てます。 */
+    geoFollow=true; geoPause=false; geoRecenter=true;
     clearTimeout(geoPauseT); geoPauseT=null;
     geoBtnText();
-    try{ if(back && map.panTo) map.panTo(back,{animate:true, duration:0.4}); }catch(e){}
-    if(typeof flash==='function') flash('また自分の位置に合わせます。');
+    try{ if(back) map.setView(back, map.getZoom(), {animate:false}); }catch(e){}
+    geoState('位置：また自分の位置に合わせました・追随中');
+    geoSay('また自分の位置に合わせます。');
     return;
   }
   if(geoOn){                                   // 切る
     geoOn=false; geoClear();
     geoBtnText();
+    clearInterval(geoTick); geoTick=null; geoState('');
     geoSay('現在地の表示をやめました。位置は取りにいきません。');
     return;
   }
   geoOn=true;                                  // 入れる。ここで初めて取りにいきます
+  geoWaitStart(); geoState('位置：調べています…（0秒）');
   /* 押したときは、いつでも真ん中から始めます（v232）。
      「いったん止め」が残っていると、位置が届いても地図が動きませんでした。
      前の位置の控えも捨てて、最初の一回で自分の位置を真ん中に持ってきます。 */
-  geoFollow=true; geoPause=false; geoPos=null;
+  geoFollow=true; geoPause=false; geoPos=null; geoRecenter=false;
   clearTimeout(geoPauseT); geoPauseT=null;
   geoBtnText();
   geoSay('位置を調べています…');
+  /* まず、粗くても速い位置を一回取って、その場で真ん中に合わせます（v234）。
+     細かい位置（enableHighAccuracy）は届くまで数秒かかることがあり、
+     そのあいだ「押したのに何も起きない」ように見えていました。
+     覚えのある位置（maximumAge 60秒）でよいので、すぐ返してもらいます。 */
+  try{
+    geoRecenter=true;
+    navigator.geolocation.getCurrentPosition(p=>{
+      if(geoOn && !geoDot) geoDraw(p);            // 点を出し、真ん中に合わせます
+    }, ()=>{}, {enableHighAccuracy:false, maximumAge:60000, timeout:8000});
+  }catch(e){}
   try{
     geoWatch=navigator.geolocation.watchPosition(geoDraw, geoFail,
       {enableHighAccuracy:true, maximumAge:5000, timeout:15000});
