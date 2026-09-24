@@ -347,6 +347,13 @@ html.isphone #aliasBar{display:none}
    #tDup は仕掛けの側で style.display を書き換えるので、!important で押さえます。
    v241 までは、試しの記録に重なりが無く知らせが出なかったため、洗い出しから漏れていました。 */
 html.isphone #tDup,html.isphone #tKen{display:none !important}
+/* スマホでは、画面下の釦（位置・使い方・TOP）の後ろに、地の色の帯を敷きます（v243）。
+   v237 で地図の下の段を消したので、地図のすぐ下の釦の並びが、画面下の釦の後ろから
+   透けてはみ出して見えていました。 */
+#fbarBg{display:none}
+html.isphone #fbarBg{display:block;position:fixed;left:0;right:0;bottom:0;z-index:1290;
+  height:calc(62px + env(safe-area-inset-bottom,0px));background:var(--paper,#f3f2ec);   /* 地図の高さ合わせで見込む釦の分（62px）とそろえる */
+  box-shadow:0 -1px 0 rgba(0,0,0,.08),0 -6px 12px rgba(0,0,0,.05);pointer-events:none}
 /* 位置の様子を、地図の中に一行で出します（v233）。
    これまでの知らせ（flash）は集計の欄（#tNote）に出していましたが、
    スマホの縦画面ではそこが画面の外で、何も見えていませんでした。
@@ -607,7 +614,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-24に保存・196本・合計 811.59 km・住所の目安 156件。（v242）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-25に保存・196本・合計 811.59 km・住所の目安 156件。（v243）</p>
 </header>
 
 <div id="map"></div>
@@ -117763,7 +117770,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.575046,133.732793],"zoom":12,"file":"徒歩軌跡 まとめ_20260924","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.575005,133.732624],"zoom":12,"file":"徒歩軌跡 まとめ_20260925","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -117891,10 +117898,36 @@ L.control.scale({imperial:false}).addTo(map);
     const d=m.querySelector('.baseDock'), ab=m.querySelector('.addrbar');
     if(a) a.style.maxWidth=Math.max(120, m.clientWidth-130)+'px';   // 左下の縮尺を避ける
     const ah=a?a.getBoundingClientRect().height:0;
-    const bottom=(ah>24)?Math.round(ah)+8:28;
-    if(d) d.style.bottom=bottom+'px';
+    let bottom=(ah>24)?Math.round(ah)+8:28;
+    /* 画面下の釦（位置・使い方・TOP）にかかりそうなら、並びをその上へ持ち上げます（v243）。
+       パソコンで開いた直後や、スマホ横で「TOP」を押したときは、地図の下の端が画面の外にあり、
+       並びがちょうど画面下の釦の裏に来て、押せなくなっていました。
+       地図の上の端からは、少なくとも90pxは下に置きます（上の釦とぶつけない）。 */
+    if(d){
+      const mr=m.getBoundingClientRect();
+      const fl=['geoBtn','howtoBtn','topBtn'].map(id=>document.getElementById(id))
+        .filter(b=>b && !b.hidden && getComputedStyle(b).display!=='none' && b.getBoundingClientRect().height>0)
+        .map(b=>b.getBoundingClientRect().top);
+      const band=document.getElementById('fbarBg');
+      if(band && getComputedStyle(band).display!=='none') fl.push(band.getBoundingClientRect().top);
+      if(fl.length){
+        const ftop=Math.min.apply(null,fl);
+        const dh=d.getBoundingClientRect().height||44;
+        const natural=mr.bottom-bottom;                    // 並びの下の端（画面の上から）
+        if(natural>ftop-8){
+          const want=Math.round(natural-(ftop-8));
+          const most=Math.max(0, Math.round(mr.height-dh-90-bottom));
+          bottom+=Math.min(want,most);
+        }
+      }
+      d.style.bottom=bottom+'px';
+    }
     if(ab && d) ab.style.bottom=(bottom+Math.round(d.getBoundingClientRect().height)+6)+'px';
   }
+  window.__dockLift=lift;
+  let _lt=0;
+  window.addEventListener('scroll',()=>{ if(_lt) return; _lt=requestAnimationFrame(()=>{ _lt=0; lift(); }); },{passive:true});
+  if(window.visualViewport) visualViewport.addEventListener('resize',()=>setTimeout(lift,60));
   const _cr=window.creditRefresh;
   window.creditRefresh=function(){ _cr(); setTimeout(lift,0); };
   window.addEventListener('resize', ()=>setTimeout(lift,50));
@@ -118748,10 +118781,7 @@ const HINTS = {
   '白地図':   '押すと、下の地図を白地図に切り替えます',
   '写真':     '押すと、下の地図を航空写真に切り替えます',
   '店舗名':   '押すと、下の地図を店舗名入りの地図に切り替えます',
-  'なし':     '押すと、重ねる地図を外します',
-  '陰影起伏図':'押すと、地形の陰影を重ねます',
-  '色別標高図':'押すと、高さを色で分けた図を重ねます',
-  '傾斜量図': '押すと、傾きの強さを表した図を重ねます',
+  /* 重ねる地図（なし・陰影・標高・傾斜）の説明は、v237 で釦ごと消したので外しました（v243） */
   // 一覧
   'すべて表示':'押すと、一覧の全部にチェックを入れ、地図と集計に入れます',
   'すべて隠す':'押すと、一覧の全部のチェックを外し、地図と集計から外します',
@@ -120111,7 +120141,11 @@ function portraitPhone(){
   function fitMap(){
     const m=document.getElementById('map');
     if(!m) return;
-    if(!portraitPhone()){
+    /* スマホなら横向きにも掛けます（v243）。横向きでは地図（420px）が画面（390px前後）より高く、
+       「TOP」で地図の上の端に合わせても、右下の出典・縮尺と下の地図の並びが画面の外や
+       画面下の釦の裏に隠れていました。地図を「画面の高さ−画面下の帯」にそろえます。 */
+    const phoneAny=(typeof isPhone==='function' && isPhone());
+    if(!(portraitPhone() || phoneAny)){
       if(m.style.height){ m.style.height=''; m.style.minHeight='';
         try{ map.invalidateSize(); }catch(e){} }
       return;
@@ -121003,6 +121037,12 @@ function howtoWire(b){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(watch,0));
   else setTimeout(watch,0);
+})();
+/* 画面下の帯（スマホだけ見える。v243） */
+(function(){
+  const go=()=>{ if(!document.getElementById('fbarBg')){ const e=document.createElement('div'); e.id='fbarBg'; document.body.appendChild(e); }
+                 if(typeof window.__dockLift==='function') setTimeout(window.__dockLift,0); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
 })();
 function keepSize(){
   const vv = window.visualViewport;
