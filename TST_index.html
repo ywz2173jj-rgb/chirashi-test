@@ -336,6 +336,10 @@ html.isphone .deck .grp:first-child>.lb{display:none}
    見るだけの方には関係の無い中身（窓の作り・経路の中身・出典など）がほとんどのためです。
    地図の出典は、地図の右下にいつも出ています。パソコン・タブレットでは残します。 */
 html.isphone #footNote{display:none}
+/* 集計表のすぐ下の「同じ人にまとめる」の段も、スマホでは出しません（v241・本人の決め）。
+   氏名の揺れをそろえる編集用の欄で、見るだけの方には要らないためです。
+   本体でそろえたまとめ方は、見えなくてもそのまま効きます。 */
+html.isphone #aliasBar{display:none}
 /* 位置の様子を、地図の中に一行で出します（v233）。
    これまでの知らせ（flash）は集計の欄（#tNote）に出していましたが、
    スマホの縦画面ではそこが画面の外で、何も見えていませんでした。
@@ -596,7 +600,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-24に保存・197本・合計 813.59 km・住所の目安 156件。（v240）　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-24に保存・197本・合計 813.59 km・住所の目安 156件。（v241）</p>
 </header>
 
 <div id="map"></div>
@@ -640,7 +644,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
   </div>
   <div class="tscroll" hidden=""><table class="ppl" id="tPpl"></table></div>
   <div class="tscroll"><table class="ppl" id="tVen"></table></div>
-  <div class="bar" style="margin-top:7px">
+  <div class="bar" id="aliasBar" style="margin-top:7px">
     <span>同じ人にまとめる：</span>
     <input type="text" id="tAlias" style="width:280px" value="" placeholder="山田はなこ＝山田花子（例）">
     <span>「＝」でつなぎ、複数は「、」で区切ります。</span>
